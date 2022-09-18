@@ -8,6 +8,7 @@ import keystrokesmod.client.event.impl.ForgeEvent;
 import keystrokesmod.client.event.impl.MoveInputEvent;
 import keystrokesmod.client.event.impl.PacketEvent;
 import keystrokesmod.client.event.impl.UpdateEvent;
+import keystrokesmod.client.mixin.mixins.MixinC03PacketPlayer;
 import keystrokesmod.client.module.Module;
 import keystrokesmod.client.module.modules.render.PlayerESP;
 import keystrokesmod.client.module.modules.world.AntiBot;
@@ -17,14 +18,17 @@ import keystrokesmod.client.utils.Utils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.client.C03PacketPlayer.C05PacketPlayerLook;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
+/**
+ * WHO MADE THIS AND WHY PLEASE WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHY WHYW
+ */
 public class LegitAura2 extends Module {
 
     private EntityPlayer target;
-    private DoubleSliderSetting reach;
+    public DoubleSliderSetting reach;
     private SliderSetting rotationDistance;
+    private float yaw, pitch;
 
     public LegitAura2() {
         super("Aura", ModuleCategory.combat);
@@ -37,9 +41,12 @@ public class LegitAura2 extends Module {
         Entity en = Utils.Player.getClosestPlayer((float) rotationDistance.getInput());
         target = (EntityPlayer) en;
         if(en != null && !AntiBot.bot(en)) {
-            Utils.Player.silentAim(en);
+            float[] i = Utils.Player.silentAim(en);
+            yaw = i[0];
+            pitch = i[1];
         } else {
-            mc.thePlayer.rotationYawHead = mc.thePlayer.cameraYaw;
+            mc.thePlayer.rotationYawHead = mc.thePlayer.rotationYaw;
+            //mc.thePlayer.rotationPitch = mc.thePlayer.cameraPitch;
         }
     }
 
@@ -57,11 +64,10 @@ public class LegitAura2 extends Module {
     @Subscribe
     public void packet(PacketEvent e) {
         Packet p = e.getPacket();
-        if(target != null) {
-            if(p instanceof C05PacketPlayerLook) {
-                C05PacketPlayerLook pe = (C05PacketPlayerLook) e.getPacket();
-                e.setCancelled(true);
-            }
+        if(target != null && p instanceof MixinC03PacketPlayer) {
+            MixinC03PacketPlayer pe = (MixinC03PacketPlayer) e.getPacket();
+            pe.setYaw(yaw);
+            pe.setPitch(pitch);;
         }
     }
 
@@ -69,9 +75,5 @@ public class LegitAura2 extends Module {
     public void move(MoveInputEvent e) {
         if(target != null)
             e.setYaw(mc.thePlayer.prevRotationYawHead);
-    }
-
-    public DoubleSliderSetting getReach() {
-        return reach;
     }
 }
